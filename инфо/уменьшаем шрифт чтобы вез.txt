@@ -1,0 +1,11 @@
+#region Уменьшение размера шрифта названия расписания, чтобы влез
+        private void SizeText(object label) // Уменьшаем размер текста названия расапиния чтобы он влез
+        {
+            SizeF extent = TextRenderer.MeasureText((label as Ambiance_Label).Text, (label as Ambiance_Label).Font);
+            float hRatio = (label as Ambiance_Label).Height / extent.Height;
+            float wRatio = (label as Ambiance_Label).Width / extent.Width;
+            float ratio = (hRatio < wRatio) ? hRatio : wRatio;
+            float newSize = (label as Ambiance_Label).Font.Size * ratio * 0.97f;
+            (label as Ambiance_Label).Font = new Font((label as Ambiance_Label).Font.FontFamily, newSize, (label as Ambiance_Label).Font.Style);
+            (label as Ambiance_Label).TextAlign = ContentAlignment.MiddleRight;
+        }

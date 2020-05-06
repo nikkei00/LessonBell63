@@ -1,0 +1,102 @@
+﻿<Window x:Class="LessonBell.WindowExitQuestion"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LessonBell"
+        mc:Ignorable="d"
+        Title="Вы дейвствительно хотите закрыть программу?" Height="768" Width="1024" Topmost="True" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="Resources/bigICO.ico" WindowState="Maximized">
+    
+    <Grid Background="Yellow">
+        <Grid Background="Yellow" Margin="20 0 20 15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="1.1*"/>
+                <RowDefinition Height="1.1*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="0.5*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Viewbox Grid.Row="0">
+                <TextBlock x:Name="Alarm" Text="ВНИМАНИЕ!" FontFamily="Arial Black" Foreground="Red"/>
+            </Viewbox>
+
+            <Viewbox Grid.Row="1">
+                <TextBlock Text="Вы собираетесь выключить компьютер," FontFamily="Arial Black"/>
+            </Viewbox>
+
+            <Viewbox Grid.Row="2">
+                <TextBlock Text="который используется для" FontFamily="Arial Black"/>
+            </Viewbox>
+
+            <Viewbox Grid.Row="3">
+                <TextBlock Text="ПОДАЧИ ЗВОНКОВ В КОЛЛЕДЖЕ!" FontFamily="Arial Black"/>
+            </Viewbox>
+
+            <Viewbox Grid.Row="4">
+                <TextBlock Text="Компьютер должен быть" FontFamily="Arial Black" Foreground="DarkBlue"/>
+            </Viewbox>
+
+            <Viewbox Grid.Row="5">
+                <TextBlock Text="ВКЛЮЧЕН ВСЕГДА!" FontFamily="Arial Black" Foreground="DarkBlue"/>
+            </Viewbox>
+
+            <Viewbox Grid.Row="6">
+                <TextBlock Text="Дождитесь затемнения экрана со списком" FontFamily="Arial Black"/>
+            </Viewbox>
+
+            <Viewbox Grid.Row="7">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="закрытия программ и " FontFamily="Arial Black"/>
+                    <TextBlock Text="НАЖМИТЕ ОТМЕНА" FontFamily="Arial Black" Background="Red" Foreground="White"/>
+                    <TextBlock Text="!" FontFamily="Arial Black"/>
+                </StackPanel>
+            </Viewbox>
+
+            <Viewbox Grid.Row="8">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <!--<TextBlock Text="или " FontFamily="Arial Black" VerticalAlignment="Center"/>-->
+                    <Button Content="  ВЫЙТИ ИЗ ПРОГРАММЫ И ВЫКЛЮЧИТЬ КОМПЬЮТЕР  " FontFamily="Arial Black" Foreground="Black" IsCancel="True" Click="btnExit_Click"/>
+                    <Button Content="  ЗАКРЫТЬ ОКНО И ПРОДОЛЖИТЬ РАБОТУ ПРОГРАММЫ  " FontFamily="Arial Black" Margin="30 0 0 0" Foreground="Black" IsDefault="True" Click="Button_Click"/>
+                </StackPanel>
+            </Viewbox>
+        </Grid>
+    </Grid>
+    <!--<Grid Background="Yellow" x:Name="gridBack">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        
+        <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Vertical">
+            <TextBlock Text="ВНИМАНИЕ!" FontSize="120" FontWeight="Bold" Foreground="Red" FontFamily="Arial Black" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="Вы собираетесь выключить компьютер," FontFamily="Arial Black" FontSize="43" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="который используется для" FontFamily="Arial Black" FontSize="43" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="ПОДАЧИ ЗВОНКОВ В КОЛЛЕДЖЕ!" FontFamily="Arial Black" FontSize="52" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="Компьютер должен быть" FontFamily="Arial Black" Foreground="DarkBlue" FontSize="70" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <TextBlock Text="ВКЛЮЧЕН ВСЕГДА!" FontFamily="Arial Black" Foreground="DarkBlue" FontSize="75" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Vertical" Margin="0 0 0 10">
+            <TextBlock Text="Дождитесь затемнения экрана с списком" FontFamily="Arial Black" FontSize="41" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="закрытия программ и " FontFamily="Arial Black" FontSize="43" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <TextBlock Text="нажмите ОТМЕНА" FontFamily="Arial Black" Foreground="White" Background="Red" FontSize="43" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </StackPanel>
+            
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="или" FontFamily="Arial Black" FontSize="30" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <Button Grid.Column="1" x:Name="btnExit" Content="ВЫЙТИ ИЗ ПРОГРАММЫ И ВЫКЛЮЧИТЬ КОМПЬЮТЕР" Width="390" Height="25" Margin="5 0 0 2" FontSize="12" FontFamily="Arial Black" IsCancel="True" Click="btnExit_Click" VerticalAlignment="Bottom"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>-->
+</Window>

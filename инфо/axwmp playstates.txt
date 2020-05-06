@@ -1,0 +1,42 @@
+switch (e.newState)
+            {
+                case 0: // Undefined
+
+                    break;
+                case 1: // Stopped
+
+                    break;
+                case 2: // Paused
+
+                    break;
+                case 3: // Playing
+
+                    break;
+                case 4: // ScanForward
+
+                    break;
+                case 5: // ScanReverse
+
+                    break;
+                case 6: // Buffering
+
+                    break;
+                case 7: // Waiting
+
+                    break;
+                case 8: // MediaEnded
+
+                    break;
+                case 9: // Transitioning
+
+                    break;
+                case 10: // Ready
+
+                    break;
+                case 11: // Reconnecting
+
+                    break;
+                case 12: // Last
+
+                    break;
+            }

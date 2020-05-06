@@ -1,0 +1,947 @@
+﻿<Window x:Class="LessonBell.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LessonBell"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms" 
+        xmlns:ax="clr-namespace:AxWMPLib;assembly=AxInterop.WMPLib" 
+        xmlns:vsm="clr-namespace:System.Windows;assembly=System.Windows"
+        mc:Ignorable="d" ResizeMode="CanResizeWithGrip"
+        Title="LessonBell - Подача звонков и музыка на переменах" Height="520" Width="630" MinHeight="520" MinWidth="550"
+        Closing="MainForm_Closing" FontSize="14" WindowStartupLocation="CenterScreen" SourceInitialized="MainWindow_SourceInitialized" Icon="bigICO.ico">
+    <Window.Resources>
+        <ControlTemplate x:Key="validationFailed">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Foreground="Red" FontSize="26" FontWeight="Bold">!</TextBlock>
+                <Border BorderBrush="Red" BorderThickness="3" CornerRadius="4">
+                    <AdornedElementPlaceholder />
+                </Border>
+                <TextBlock Foreground="Red" FontSize="26" FontWeight="Bold">!</TextBlock>
+            </StackPanel>
+        </ControlTemplate>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <TabControl x:Name="tabControl" Margin="5, 5, 5, 2">
+            <!--оооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооо-->
+            <TabItem Header="Главная">
+                <Grid Background="#FFF7F6F6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="35"></RowDefinition>
+                        <RowDefinition Height="35"></RowDefinition>
+                        <RowDefinition Height="35"></RowDefinition>
+                        <RowDefinition Height="10"></RowDefinition>
+                        <RowDefinition Height="35"></RowDefinition>
+                        <RowDefinition Height="35"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Image Source="Resources/bigBell.png" Grid.Column="0" Margin="0,2,3,2" 
+                           Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center"/> <!--Картинка-->
+                    <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="0">
+                        <TextBlock Text="Текущее время: " VerticalAlignment="Center" FontSize="18"/>
+                        <TextBlock x:Name="labelCurrentTime" Text="08:30:29" VerticalAlignment="Center"  FontSize="18" FontWeight="Bold"/>
+                    </StackPanel> <!--Текущее время-->
+                    <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="2">
+                        <TextBlock Text="Ближайший звонок " VerticalAlignment="Center" FontSize="18"/>
+                        <TextBlock x:Name="labelTimeNextBell" Text="——" VerticalAlignment="Center"  FontSize="18" FontWeight="Bold"/>
+                        <TextBlock Text=" через " VerticalAlignment="Center" FontSize="18"/>
+                        <TextBlock x:Name="labelLeftTimeToNextBell" Text="——" VerticalAlignment="Center"  FontSize="18" FontWeight="Bold"/>
+                        <!--<Button Content=" test s " Click="Button_Click"/>-->
+                    </StackPanel> <!--Ближайший звонок-->
+                    <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="1">
+                        <TextBlock Text="Музыка перед занятиями с " VerticalAlignment="Center" FontSize="18"/>
+                        <TextBlock x:Name="labelTimeMusicBeforeBells" Text="——" VerticalAlignment="Center"  FontSize="18" FontWeight="Bold"/>
+                    </StackPanel> <!--Музыка перед занятиями-->
+                    <Separator Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Margin="5,0,5,0"/> <!--Разделительная черта-->
+                    <!--Время включения/выключения усилителя-->
+                    <StackPanel Margin="5, 0, 0, 0" Orientation="Horizontal" Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2">
+                        <TextBlock Text="Включение усилителя в " VerticalAlignment="Center" FontSize="18"/>
+                        <TextBlock x:Name="labelTimeOnYsil" Text="——" VerticalAlignment="Center"  FontSize="18" FontWeight="Bold"/>
+                        <TextBlock x:Name="labelModeOnYsil" Text=" (не выбран порт управления)" VerticalAlignment="Center" FontSize="14"/>
+                    </StackPanel>
+                    <StackPanel Margin="5, 0, 0, 0" Orientation="Horizontal" Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2">
+                        <TextBlock Text="Выключение усилителя в " VerticalAlignment="Center" FontSize="18"/>
+                        <TextBlock x:Name="labelTimeOffYsil" Text="——" VerticalAlignment="Center"  FontSize="18" FontWeight="Bold"/>
+                        <TextBlock x:Name="labelModeOffYsil" Text=" (не выбран порт управления)" VerticalAlignment="Center" FontSize="14"/>
+                    </StackPanel>
+
+                    <TabControl Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="2" Margin="5, 0, 5, 5">
+                        <TabItem Header="Расписание звонков на сегодня">
+                            <Grid Background="#FFE5E5E5">
+                                <ListView x:Name="NewlistViewBells" Margin="5" SelectionMode="Single">
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridView.Columns>
+                                                <GridViewColumn Header="№" Width="30" DisplayMemberBinding="{Binding Number}"/>
+
+                                                <GridViewColumn Header="Время" Width="100">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding TimeStart, StringFormat={}{0:hh}:{0:mm}}"/>
+                                                                <TextBlock Text=" - "/>
+                                                                <TextBlock Text="{Binding TimeEnd, StringFormat={}{0:hh}:{0:mm}}"/>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+
+                                                <GridViewColumn Header="Музыка" Width="95">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock>
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="{x:Type TextBlock}">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding MuzActive}" Value="True">
+                                                                                <Setter Property="Text" Value="Включена"/>
+                                                                                <Setter Property="FontWeight" Value="DemiBold"/>
+                                                                                <Setter Property="Foreground" Value="Green"/>
+                                                                            </DataTrigger>
+
+                                                                            <DataTrigger Binding="{Binding MuzActive}" Value="False">
+                                                                                <Setter Property="Text" Value="Выключена"/>
+                                                                                <Setter Property="FontWeight" Value="Normal"/>
+                                                                                <Setter Property="Foreground" Value="#FF042271"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn Header="Звонил ли" Width="95">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock>
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="{x:Type TextBlock}">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding PozvonilStart}" Value="True">
+                                                                                    <Setter Property="Text" Value="Да"/>
+                                                                                    <Setter Property="FontWeight" Value="DemiBold"/>
+                                                                                    <Setter Property="Foreground" Value="Green"/>
+                                                                                </DataTrigger>
+                                                                                <DataTrigger Binding="{Binding PozvonilStart}" Value="False">
+                                                                                    <Setter Property="Text" Value="Нет"/>
+                                                                                    <Setter Property="FontWeight" Value="Normal"/>
+                                                                                    <Setter Property="Foreground" Value="#FF042271"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                                <TextBlock Text=" - "/>
+                                                                <TextBlock>
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="{x:Type TextBlock}">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding PozvonilEnd}" Value="True">
+                                                                                    <Setter Property="Text" Value="Да"/>
+                                                                                    <Setter Property="FontWeight" Value="DemiBold"/>
+                                                                                    <Setter Property="Foreground" Value="Green"/>
+                                                                                </DataTrigger>
+                                                                                <DataTrigger Binding="{Binding PozvonilEnd}" Value="False">
+                                                                                    <Setter Property="Text" Value="Нет"/>
+                                                                                    <Setter Property="FontWeight" Value="Normal"/>
+                                                                                    <Setter Property="Foreground" Value="#FF042271"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+
+                                                <GridViewColumn Header="Какое расписание" Width="220">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Text="{Binding NameRasp}" HorizontalAlignment="Left"/>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                            </GridView.Columns>
+                                        </GridView>
+                                    </ListView.View>
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                            <Setter Property="Height" Value="23"/>
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                </ListView>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem Header="Дополнительные сигналы сегодня">
+                            <Grid Background="#FFE5E5E5">
+                                <ListView x:Name="NewlistViewDops" Margin="5" SelectionMode="Single">
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridView.Columns>
+                                                <GridViewColumn Header="Время" Width="55">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Text="{Binding Time, StringFormat={}{0:hh}:{0:mm}}"/>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn Header="Сигнал" Width="280" DisplayMemberBinding="{Binding MiniSignal}"/>
+                                                <GridViewColumn Header="Какое расписание" Width="205">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Text="{Binding NameRasp}" HorizontalAlignment="Left"/>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                            </GridView.Columns>
+                                        </GridView>
+                                    </ListView.View>
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            <Setter Property="Height" Value="23"/>
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                </ListView>
+                            </Grid>
+                        </TabItem>
+                    </TabControl><!--Список уроков сегодня-->
+                </Grid>
+            </TabItem>
+            <!--оооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооо-->
+            <TabItem Header="Расписания звонков">
+                <Grid Background="#FFF7F6F6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="50"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="Расписания звонков" FontSize="23" FontWeight="DemiBold" HorizontalAlignment="Center" Grid.ColumnSpan="3"/>
+
+
+
+                    <ListView x:Name="NewlistViewRaspsZvonkov" FontSize="15" Margin="5, 0, 5, 5" Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" SelectionMode="Single" MouseDoubleClick="NewlistViewRaspsZvonkov_MouseDoubleClick">
+                        <ListView.View>
+                            <GridView>
+                                <GridView.Columns>
+                                    <GridViewColumn Header="№" Width="30" DisplayMemberBinding="{Binding Number}"/>
+                                    <GridViewColumn Header="Название расписания" DisplayMemberBinding="{Binding NameRasp}" Width="320"/>
+                                    <GridViewColumn Header="Активность" Width="90">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox UseLayoutRounding="True" IsChecked="{Binding Active}" Style="{DynamicResource CheckBoxSwitcher}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Приоритет" Width="115">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ComboBox Width="100" SelectedIndex="{Binding Priority}">
+                                                    <ComboBoxItem Content="Обычный"/>
+                                                    <ComboBoxItem Content="Высокий"/>
+                                                </ComboBox>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView.Columns>
+                            </GridView>
+                        </ListView.View>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                <Setter Property="Height" Value="38"/>
+                                <Setter Property="ToolTip" Value="{Binding NameRasp}"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    </ListView>
+
+                    <Button x:Name="AddRasp" Margin="5, 1, 3, 5" Grid.Column="0" Grid.Row="2" Height="45" Click="AddRasp_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="Resources/add.png" Margin="6,5,4,5" />
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock TextWrapping="Wrap" Text="Добавить" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                <TextBlock TextWrapping="Wrap" Text="расписание" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="EditSelectedRasp" Margin="3, 1, 3, 5" Grid.Column="1" Grid.Row="2" Height="45" Click="EditSelectedRasp_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="Resources/edit.png" Margin="6,5,4,5" />
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock TextWrapping="Wrap" Text="Изменить" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                <TextBlock TextWrapping="Wrap" Text="выбранное" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="DeleteSelectedRasp" Margin="3, 1, 5, 5" Grid.Column="3" Grid.Row="2" Height="45" Click="DeleteSelectedRasp_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="Resources/delete.png" Margin="6,5,4,5" />
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock TextWrapping="Wrap" Text="Удалить" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                <TextBlock TextWrapping="Wrap" Text="выбранное" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </TabItem>
+            <!--оооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооо-->
+            <TabItem Header="Плееры">
+                <Grid Background="#FFF7F6F6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <!--Разделитель-->
+                        <RowDefinition Height="auto"/>
+                        <!--Воспроизводить музыку на переменах-->
+                        <RowDefinition Height="auto"/>
+                        <!--Режим проигрывания-->
+                        <RowDefinition Height="auto"/>
+                        <!--Плеер музыки-->
+                        <RowDefinition Height="*"/>
+                        <!--Сторонний плеер-->
+                        <RowDefinition Height="auto"/>
+                        <!--Делитель-->
+                        <RowDefinition Height="auto"/>
+                        <!--Воспроизводить доп.сигналы-->
+                        <RowDefinition Height="auto"/>
+                        <!--Плеер доп.сигнаов-->
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!--Делитель-->
+                    <Separator Grid.Row="0" Grid.ColumnSpan="3" Margin="3 5 3 3"/>
+
+                    <!--Воспроизводить музыку на переменах-->
+                    <CheckBox Grid.Row="1" Grid.ColumnSpan="3" x:Name="cbxPlayMusic" Checked="cbxMuzNaPeremenax_Checked" Unchecked="cbxMuzNaPeremenax_Checked"
+                                   IsChecked="True" Content="Воспроизводить музыку на переменах" FontSize="22" FontWeight="Bold" UseLayoutRounding="True" 
+                                       Style="{DynamicResource CheckBoxSwitcher}" HorizontalAlignment="Center"/>
+
+                    <!--Режим проигрывания-->
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 2 0 2">
+                        <TextBlock x:Name="lbModeGetMusic" Grid.Row="2" Text="Режим проигрывания музыки: " FontSize="17" VerticalAlignment="Center"/>
+
+                        <ComboBox x:Name="comboModePlayMusic" Grid.Row="2" Grid.Column="1"  Width="190" HorizontalAlignment="Left" SelectionChanged="comboModePlayMusic_SelectionChanged">
+                            <ComboBoxItem Content="В случайном порядке"/>
+                            <ComboBoxItem Content="Подряд с первой песни"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!--Плеер музыки-->
+                    <Grid Grid.Row="3" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <WindowsFormsHost Name="formsHost">
+                            <ax:AxWindowsMediaPlayer x:Name="axWmpMusic"/>
+                        </WindowsFormsHost>
+
+                        <!--<Grid Panel.ZIndex="100">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="1.6*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1.6*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Panel.ZIndex="110" Foreground="Black" Text="Post Malone - RockStar" VerticalAlignment="Center" FontSize="15" TextWrapping="Wrap"/>
+                        </Grid>-->
+                        <ListView Grid.Column="1" FontSize="11" Margin="5 0 0 1" x:Name="ListViewPlayerMusic" SelectionMode="Single" MouseDoubleClick="ListViewPlayerMusic_MouseDoubleClick">
+                            <ListView.View>
+                                <GridView>
+                                    <GridView.Columns>
+                                        <GridViewColumn Header="№" Width="30" DisplayMemberBinding="{Binding Number}"/>
+                                        <GridViewColumn Header="Текущий плейлист" Width="205" DisplayMemberBinding="{Binding Melody}">
+                                        </GridViewColumn>
+                                    </GridView.Columns>
+                                </GridView>
+                            </ListView.View>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <!--<Setter Property="HorizontalContentAlignment" Value="Center" />-->
+                                    <Setter Property="Height" Value="20"/>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+                    </Grid>
+                    
+                    
+                    <!---->
+
+                    <!--Сторонний плеер-->
+                    <Grid Grid.Row="4" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="0.04*"/>
+                            <ColumnDefinition Width="115"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <CheckBox x:Name="cbxOtherPlayer" Checked="cbxOtherPlayer_Checked" Unchecked="cbxOtherPlayer_Checked" Grid.Row="0" Grid.ColumnSpan="3" Margin="0, 3, 0, 4"
+                                  Content="Сторонний плеер" FontSize="18" FontWeight="DemiBold" UseLayoutRounding="True" 
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource CheckBoxSwitcher}"/>
+
+                        <TextBox x:Name="tbxOtherPlayer" Text="AIMP" IsEnabled="False" IsReadOnly="True" Height="35" VerticalContentAlignment="Center" FontSize="16" Grid.Column="0" Grid.Row="2" VerticalAlignment="Stretch"/>
+
+                        <Button x:Name="btnChangeOtherPlayer" Click="btnChangeOtherPlayer_Click" IsEnabled="False" Grid.Column="4" Grid.Row="2" Height="35">
+                            <StackPanel Orientation="Horizontal">
+                                <Image RenderOptions.BitmapScalingMode="HighQuality" Source="Resources/edit.png" Margin="0, 4, 1, 4" />
+                                <TextBlock Text="Изменить" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!--Делитель-->
+                    <Separator Grid.Row="5" Grid.ColumnSpan="3" Margin="3 6 3 3"/>
+
+                    <!--Воспроизводить доп.сигналы-->
+                    <CheckBox Grid.Row="6" Grid.ColumnSpan="3" x:Name="cbxPlayDops" Checked="cbxDops_Checked" Unchecked="cbxDops_Checked"
+                                  IsChecked="True" Content="Воспроизводить дополнительные сигналы" FontSize="22" FontWeight="Bold" UseLayoutRounding="True" 
+                                       Style="{DynamicResource CheckBoxSwitcher}" HorizontalAlignment="Center"/>
+
+                    <!--Плеер доп.сигналов-->
+                    <Grid Grid.Row="7" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <WindowsFormsHost Name="formsHostt" Margin="0 0 0 5">
+                            <ax:AxWindowsMediaPlayer x:Name="axWmpDops"/>
+                        </WindowsFormsHost>
+
+                        <ListView Grid.Column="1" FontSize="11" Margin="5 0 0 6" x:Name="ListViewPlayerDop" SelectionMode="Single" MouseDoubleClick="ListViewPlayerMusic_MouseDoubleClick">
+                            <ListView.View>
+                                <GridView>
+                                    <GridView.Columns>
+                                        <GridViewColumn Header="№" Width="30" DisplayMemberBinding="{Binding Number}"/>
+                                        <GridViewColumn Header="Текущий плейлист" Width="205" DisplayMemberBinding="{Binding Melody}">
+                                        </GridViewColumn>
+                                    </GridView.Columns>
+                                </GridView>
+                            </ListView.View>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <!--<Setter Property="HorizontalContentAlignment" Value="Center" />-->
+                                    <Setter Property="Height" Value="20"/>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <!--оооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооо-->
+            <TabItem Header="Усилитель">
+                <Grid Background="#FFF7F6F6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+
+                    <Grid Grid.Row="0" Margin="3, 3, 3, 1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="5"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="5"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Separator Grid.ColumnSpan="2" Grid.Row="0" VerticalAlignment="Center"/>
+
+                        <WrapPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock x:Name="lbYsilCom" Text="Модуль управления электропитанием усилителя не подключен" Grid.Row="1" TextWrapping="Wrap" FontSize="18" FontWeight="Regular" VerticalAlignment="Center"/>
+
+                            <!--<ComboBox x:Name="comboYsilCom" SelectedIndex="0" Width="105" SelectionChanged="comboYsilCom_SelectionChanged">
+                                <ComboBoxItem Content="Не выбран"/>
+                                <ComboBoxItem Content="COM4"/>
+                                <ComboBoxItem Content="COM5"/>
+                                <ComboBoxItem Content="COM6"/>
+                            </ComboBox> -->
+                        </WrapPanel>
+
+                        <Separator Grid.ColumnSpan="2" Grid.Row="2" VerticalAlignment="Center"/>
+
+                        <WrapPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0, 3, 0, 0">
+                            <TextBlock Text="Текущее состояние усилителя звука: " FontSize="18" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="lbYsilState" Text="ВЫКЛЮЧЕН" FontSize="20" FontWeight="Bold" Foreground="DarkRed" TextWrapping="Wrap"/>
+                        </WrapPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="55"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="5"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="27"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="27"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="27"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="27"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Separator Grid.ColumnSpan="3" Grid.Row="0" VerticalAlignment="Center"/>
+
+                        <TextBlock Text="Режим работы электропитания усилителя звука:" FontSize="18" FontWeight="DemiBold" TextWrapping="Wrap" Grid.Row="1" Grid.ColumnSpan="3" TextAlignment="Center" VerticalAlignment="Center"/>
+
+                        <RadioButton x:Name="rbYsilNoControl" Checked="rbYsilNoControl_Checked" Unchecked="rbYsilNoControl_Checked" Width="150" HorizontalAlignment="Left" Style="{DynamicResource RadioButtonLarge}" Content="Не управлять" VerticalAlignment="Bottom" FontSize="17" FontWeight="DemiBold" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"/>
+
+                        <TextBlock x:Name="lbYsilNoControl" IsEnabled="False" Text="Функция управления питанием усилителя отключена." TextWrapping="Wrap" FontSize="16" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2"/>
+
+
+                        <RadioButton x:Name="rbYsilAuto" Checked="rbYsilAuto_Checked" Unchecked="rbYsilAuto_Checked" Width="165" HorizontalAlignment="Left" Style="{DynamicResource RadioButtonLarge}" Content="Автоматически" VerticalAlignment="Bottom" FontSize="17" FontWeight="DemiBold" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"/>
+                        <StackPanel  Grid.Row="5" Grid.Column="2">
+                            <WrapPanel Orientation="Horizontal">
+                                <TextBlock x:Name="lbYsilAutoTime1" IsEnabled="False" Text="Время включения: " TextWrapping="Wrap" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="lbYsilAutoTimeOn" IsEnabled="False" Text="07:59:00"          TextWrapping="Wrap" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="lbYsilAutoTime2" IsEnabled="False" Text=", "    TextWrapping="Wrap" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="lbYsilAutoTime3" IsEnabled="False" Text="выключения: "    TextWrapping="Wrap" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="lbYsilAutoTimeOff" IsEnabled="False" Text="17:05:10"          TextWrapping="Wrap" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"/>
+                            </WrapPanel>
+                            <TextBlock x:Name="lbYsilAutoTime4" IsEnabled="False" Text="Рассчитывается автоматически в соответствии с расписанием звонков и дополнительными сигналами." TextWrapping="Wrap" FontSize="15" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <RadioButton x:Name="rbYsilTime" Checked="rbYsilTime_Checked" Unchecked="rbYsilTime_Checked" Width="140" HorizontalAlignment="Left" Style="{DynamicResource RadioButtonLarge}" Content="По времени" VerticalAlignment="Bottom" FontSize="17" FontWeight="DemiBold" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2"/>
+                        <Grid Grid.Row="7" Grid.Column="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0, 0, 5, 0">
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                    <TextBlock x:Name="lbYsilTimeOn" IsEnabled="False" Text="Время включения: " FontSize="16" VerticalAlignment="Center" />
+                                    <xctk:MaskedTextBox x:Name="tbxYsilTimeOn" IsEnabled="False" Mask="00:00" Text="08:00" TextAlignment="Center" Height="29" Width="Auto"
+                                             IsReadOnly="True" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0, 3, 0, 0">
+                                    <TextBlock x:Name="lbYsilTimeOff" IsEnabled="False" Text="Время выключения: " FontSize="16" VerticalAlignment="Center" />
+                                    <xctk:MaskedTextBox x:Name="tbxYsilTimeOff" IsEnabled="False" Mask="00:00" Text="08:00" TextAlignment="Center" Height="29" Width="Auto"
+                                             IsReadOnly="True" FontSize="17" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                            </StackPanel>
+
+
+                            <Button x:Name="btnYsilTimeEdit" Visibility="Hidden" Height="35" Width="110" Grid.Column="1" Click="btnYsilTimeEdit_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image RenderOptions.BitmapScalingMode="HighQuality" Source="Resources/edit.png" Margin="0, 4, 1, 4" />
+                                    <TextBlock Text="Изменить" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="btnYsilTimeSave" Height="35" Width="117" Grid.Column="1" Visibility="Hidden" Click="btnYsilTimeSave_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image RenderOptions.BitmapScalingMode="HighQuality" Source="Resources/diskette.png" Margin="0, 4, 1, 4" />
+                                    <TextBlock Text="Сохранить" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="btnYsilTimeCancel" Height="35" Width="110" Grid.Column="2" Visibility="Hidden" Click="btnYsilTimeCancel_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image RenderOptions.BitmapScalingMode="HighQuality" Source="Resources/delete.png" Margin="0, 4, 1, 4" />
+                                    <TextBlock Text="Отменить" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <RadioButton x:Name="rbYsilHands" Checked="rbYsilHands_Checked" Unchecked="rbYsilHands_Checked" Width="110" HorizontalAlignment="Left" Style="{DynamicResource RadioButtonLarge}" Content="Вручную" VerticalAlignment="Bottom" FontSize="17" FontWeight="DemiBold" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2"/>
+                        <StackPanel Orientation="Horizontal" Grid.Row="9" Grid.Column="2" Margin="0, 4, 0, 0">
+                            <!--Включить-->
+                            <Button x:Name="btnYsilHandsOn" Grid.Column="5" Grid.Row="2" Height="35" Width="115" IsEnabled="False" Margin="0, 0, 3, 0" Click="btnYsilHandsOn_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="Resources/power.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0, 2, 3, 4"/>
+                                    <TextBlock Text="Включить" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <!--Выключить-->
+                            <Button x:Name="btnYsilHandsOff" Grid.Column="5" Grid.Row="2" Height="35" Width="125" IsEnabled="False" Margin="3, 0, 0, 0" Click="btnYsilHandsOff_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="Resources/powerOFF.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0, 2, 3, 4"/>
+                                    <TextBlock Text="Выключить" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <!--оооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооо-->
+            <TabItem Header="Выходные">
+                <Grid Background="#FFF7F6F6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="1.3*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Separator Grid.ColumnSpan="5" Grid.Row="0" Margin="3, 2, 3, 0" VerticalAlignment="Center"/>
+                    <Grid Grid.Column="0" Grid.Row="1" Margin="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="50"/>
+                            <RowDefinition Height="40"/>
+                            <RowDefinition Height="40"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Выходные дни:" Margin="4, 0, 0, 0" FontSize="20" FontWeight="DemiBold" TextWrapping="Wrap" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <ListView x:Name="ListViewHolidaysOneDate" FontSize="15" Grid.Column="0" Grid.Row="1">
+                            <ListView.View>
+                                <GridView>
+                                    <GridView.Columns>
+                                        <GridViewColumn Header="№" Width="30" DisplayMemberBinding="{Binding Number}"/>
+                                        <GridViewColumn Header="Дата выходного дня" Width="195">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Date, StringFormat='dd MMMM', ConverterCulture=ru-RU}"/>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                    </GridView.Columns>
+                                </GridView>
+                            </ListView.View>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                    <Setter Property="Height" Value="23"/>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+                        
+
+                            <DatePicker x:Name="dpDayHoliday" VerticalAlignment="Center" FontSize="20" Grid.Row="2" Height="40"/>
+                            <Button x:Name="AddHoliday" Grid.Row="3" Click="AddHoliday_Click">
+                                <StackPanel Orientation="Horizontal">
+                                <Image Source="Resources/add.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="6,5,4,5" />
+                                    <TextBlock Text="Добавить в список" FontSize="17" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="RemoveSelectedHoliday" Grid.Row="4" Click="RemoveSelectedHoliday_Click">
+                                <StackPanel Orientation="Horizontal">
+                                <Image Source="Resources/delete.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="6,5,4,5" />
+                                <TextBlock Text="Удалить выделенные" FontSize="17" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                    </Grid>
+                    <Grid Grid.Column="1" Grid.Row="1" Margin="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="50"/>
+                            <RowDefinition Height="40"/>
+                            <RowDefinition Height="40"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Каникулы:" Margin="4, 0, 0, 0" FontSize="20" FontWeight="DemiBold" TextWrapping="Wrap"  Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <ListView x:Name="ListViewHolidaysTwoDate" FontSize="15" Grid.Column="0" Grid.Row="1">
+                            <ListView.View>
+                                <GridView>
+                                    <GridView.Columns>
+                                        <GridViewColumn Header="№" Width="30" DisplayMemberBinding="{Binding Number}"/>
+                                        <GridViewColumn Header="Срок каникул" Width="275">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="с  "/>
+                                                        <TextBlock Text="{Binding DateStart, StringFormat='dd MMMM', ConverterCulture=ru-RU}"/>
+                                                        <TextBlock Text="  до  "/>
+                                                        <TextBlock Text="{Binding DateEnd, StringFormat='dd MMMM', ConverterCulture=ru-RU}"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                    </GridView.Columns>
+                                </GridView>
+                            </ListView.View>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                    <Setter Property="Height" Value="23"/>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="0.15*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <DatePicker x:Name="dpStartKanikylu" VerticalAlignment="Center" FontSize="20" Grid.Column="0" Height="40"/>
+                            <TextBlock Text="—" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="1"/>
+                            <DatePicker x:Name="dpEndKanikylu" VerticalAlignment="Center" FontSize="20" Grid.Column="2" Height="40"/>
+
+                        </Grid>
+
+                        <Button x:Name="AddKanikylu" Grid.Row="3" Click="AddKanikylu_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="Resources/add.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="6,5,4,5" />
+                                <TextBlock Text="Добавить в список" FontSize="17"  TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="RemoveSelectedKanikylu" Grid.Row="4" Click="RemoveSelectedKanikylu_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="Resources/delete.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="6,5,4,5" />
+                                <TextBlock Text="Удалить выделенные" FontSize="17"  TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                </Grid>
+            </TabItem>
+            <!--оооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооо-->
+            <TabItem Header="Настройки">
+                <Grid Background="#FFF7F6F6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="520"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="5"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Separator Grid.ColumnSpan="5" Grid.Row="0" VerticalAlignment="Center"/>
+
+                        <CheckBox x:Name="cbxAutoStart" Grid.Column="0" Grid.Row="1" Margin="0, 3, 0, 3" Content="Автозапуск при старте Windows" FontSize="18" FontWeight="Regular" UseLayoutRounding="True" 
+                                      HorizontalAlignment="Left" VerticalAlignment="Center" Style="{DynamicResource CheckBoxSwitcher}" Checked="cbxAutoStart_Checked" Unchecked="cbxAutoStart_Checked"/>
+
+                        <CheckBox x:Name="cbxRunMinimized" Grid.Column="0" Grid.Row="2" Margin="0, 3, 0, 0"  Content="Запускать свернутой в трей" FontSize="18" FontWeight="Regular" UseLayoutRounding="True" 
+                                      HorizontalAlignment="Left" VerticalAlignment="Center" Style="{DynamicResource CheckBoxSwitcher}" Checked="cbxRunMinimized_Checked" Unchecked="cbxRunMinimized_Checked"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="0.04*"/>
+                            <ColumnDefinition Width="105"/>
+                            <ColumnDefinition Width="0.04*"/>
+                            <ColumnDefinition Width="115"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="5"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="5"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="5"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Separator Grid.ColumnSpan="5" Grid.Row="0"/>
+                        <TextBlock Text="Папка с музыкой для перемен:" TextWrapping="Wrap" Margin="0, 4, 0, 5" FontSize="18" FontWeight="DemiBold" Grid.Row="1" Grid.ColumnSpan="5" TextAlignment="Center" VerticalAlignment="Center"/>
+
+                        <TextBox x:Name="tbxMusicFolder" Text="Не выбрана" IsReadOnly="True" Height="35" VerticalContentAlignment="Center" FontSize="16" Grid.Column="0" Grid.Row="2" VerticalAlignment="Stretch"/>
+
+                        <Button x:Name="btnOpenMusicFolder" Grid.Column="2" Grid.Row="2" Height="35" Click="btnOpenMusicFolder_Click" >
+                            <StackPanel Orientation="Horizontal">
+                                <Image RenderOptions.BitmapScalingMode="HighQuality" Source="Resources/folder.png" Margin="0, 3, 3, 3" />
+                                <TextBlock Text="Открыть" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        
+                        
+                        <Button x:Name="btnEditMusicFolder" Grid.Column="4" Grid.Row="2" Height="35" Click="btnEditMusicFolder_Click" >
+                            <StackPanel Orientation="Horizontal">
+                                <Image RenderOptions.BitmapScalingMode="HighQuality" Source="Resources/edit.png" Margin="0, 4, 1, 4" />
+                                <TextBlock Text="Изменить" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <WrapPanel Grid.Column="0" Grid.ColumnSpan="7" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBox x:Name="tbxMinMusAfterBells" Text="5" Width="40" Height="36" IsReadOnly="True" FontSize="20" FontWeight="DemiBold" TextAlignment="Center"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <Button x:Name="btnMinMusUp" Content="+" Width="30" Height="18" FontWeight="ExtraBlack" FontSize="14" Click="btnMinMusUp_Click" PreviewMouseDown="btnMinMusUp_PreviewMouseDown" PreviewMouseUp="btnMinMusUp_PreviewMouseUp"/>
+                                <Button x:Name="btnMinMusDown" Content="-" Width="30" Height="18" FontWeight="ExtraBlack" FontSize="14" Click="btnMinMusDown_Click" PreviewMouseDown="btnMinMusDown_PreviewMouseDown" PreviewMouseUp="btnMinMusDown_PreviewMouseUp"/>
+                            </StackPanel>
+                            <TextBlock Text=" минут играть музыку после последнего звонка" TextWrapping="Wrap" FontSize="17" FontWeight="Regular" VerticalAlignment="Center"/>
+                        </WrapPanel>
+
+                        <!--<CheckBox x:Name="cbxAuto" Grid.Column="0" Grid.Row="6" Margin="0, 3, 0, 3" Content="Устанавливать громкость звука компьютера на 100 перед звонками" FontSize="18" FontWeight="Regular" UseLayoutRounding="True" 
+                                      HorizontalAlignment="Left" VerticalAlignment="Center" Style="{DynamicResource CheckBoxSwitcher}"/>-->
+                        
+                    </Grid>
+                    <!--Папка с музыкой для перемен-->
+
+                    <Grid Grid.Row="2" Margin="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="65"/>
+                            <ColumnDefinition Width="0.04*"/>
+                            <ColumnDefinition Width="1.5*"/>
+                            <ColumnDefinition Width="1.5*"/>
+                            <ColumnDefinition Width="0.04*"/>
+                            <ColumnDefinition Width="115"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="5"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="5"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="11"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Separator Grid.ColumnSpan="6" Grid.Row="0"/>
+                        <TextBlock Text="Мелодии звонков:" TextWrapping="Wrap" Margin="0, 2, 0, 2" FontSize="18" FontWeight="DemiBold" Grid.Row="1" Grid.ColumnSpan="7" TextAlignment="Center" VerticalAlignment="Center"/>
+
+                        <TextBlock Text="На урок" FontSize="17" Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+
+                        <TextBox x:Name="tbxMelodyStart" Text="NaPary_BezNizov.mp3" IsReadOnly="True" Height="35" VerticalContentAlignment="Center" FontSize="16" Grid.Column="2" Grid.ColumnSpan="2" Grid.Row="2" VerticalAlignment="Center"/>
+
+                        <Button x:Name="btnEditMelodyStart" Grid.Column="5" Grid.Row="2" Height="35" Click="btnEditMelodyStart_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="Resources/edit.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0, 4, 1, 4"/>
+                                <TextBlock Text="Изменить" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <TextBlock Text="С урока" FontSize="17" Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+
+                        <TextBox x:Name="tbxMelodyEnd" Text="SPari_BezNizov.mp3" IsReadOnly="True" Height="35" VerticalContentAlignment="Center" FontSize="16" Grid.Column="2"  Grid.ColumnSpan="2" Grid.Row="4" VerticalAlignment="Stretch"/>
+
+                        <Button x:Name="btnEditMelodyEnd" Grid.Column="5" Grid.Row="4" Height="35" Click="btnEditMelodyEnd_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="Resources/edit.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0, 4, 1, 4" />
+                                <TextBlock Text="Изменить" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Separator Grid.ColumnSpan="6" Grid.Row="5"/>
+                        
+                        <Grid Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="0.7*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="btnBellStartNow" Grid.Column="0" Grid.Row="0"  Height="35" Margin="0, 0, 3, 0" Click="btnBellStartNow_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="Resources/gBell.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0, 4, 1, 4" />
+                                    <TextBlock Text="Подать звонок НА УРОК" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="btnSpecSettings" Grid.Column="1" Grid.Row="0"  Height="35" Click="btnSpecSettings_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="Resources/gear.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0, 4, 1, 4" />
+                                    <TextBlock Text="Доп.Настройки" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <Button x:Name="btnBellEndNow" Grid.Column="2" Grid.Row="0"  Height="35" Margin="3, 0, 0, 0" Click="btnBellEndNow_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="Resources/gBell.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0, 4, 1, 4" />
+                                    <TextBlock Text="Подать звонок С УРОКА" FontSize="16" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                    </Grid>
+                    <!--Мелодии звонков-->
+
+
+                    <Grid Grid.Row="3" Margin="3">
+                        <ListView x:Name="ListViewLog" FontSize="9" Grid.Column="0" Grid.Row="1" SelectionMode="Extended">
+                            <ListView.View>
+                                <GridView>
+                                    <GridView.Columns>
+                                        <GridViewColumn Header="Время" Width="90" DisplayMemberBinding="{Binding Date}"/>
+                                        <GridViewColumn Header="Действие программы" Width="460" DisplayMemberBinding="{Binding Error}"/>
+                                    </GridView.Columns>
+                                </GridView>
+                            </ListView.View>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <!--<Setter Property="HorizontalContentAlignment" Value="Center" />-->
+                                    <!--<Setter Property="Height" Value="23"/>-->
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            </ListView>
+                    </Grid>
+                    
+                </Grid>
+            </TabItem>
+            <!--оооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооооо-->
+        </TabControl>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="5, 0, 5, 2">
+            <TextBlock Text="Дата: " FontSize="14"/>
+            <TextBlock x:Name="lbCurrentDate" Text="11.02.14" FontSize="14" FontWeight="DemiBold"/>
+            <TextBlock Text=" | Время: " FontSize="14"/>
+            <TextBlock x:Name="lbCurrentTime" Text="12:30" FontSize="14" FontWeight="DemiBold"/>
+
+
+            <TextBlock Text=" | Ближайший звонок " FontSize="14"/>
+            <TextBlock x:Name="lbTimeNextBell" Text="на урок в 14:05" FontSize="14" FontWeight="DemiBold"/>
+            <TextBlock Text=" через " FontSize="14"/>
+            <TextBlock x:Name="lbLeftTimeToNextBell" Text="08:30:05" FontSize="14" FontWeight="DemiBold"/>
+        </StackPanel>
+        
+        
+        <!--<Border BorderThickness="0, 0, 0, 0" BorderBrush="#919191" Grid.Row="1" Margin="0, 2, 0, 0">
+            <TextBlock x:Name="lbCurrentDateTime" Text="Дата: 17.04.2018 | Время: 20:11:00 | Ближайший звонок на урок в 21:00 через 08:30:00"
+                       Margin="3, 2, 3, 2"  FontSize="14" VerticalAlignment="Center"/>
+        </Border>-->
+
+        <!--<Border BorderThickness="0, 1, 0, 0" BorderBrush="#919191" Grid.Row="2" Margin="0, 2, 0, 0">
+            <TextBlock x:Name="lbCriticalError" Text="ВНИМАНИЕ! Не выбрана папка с музыкой на перемены" Margin="3, 2, 3, 2"  FontSize="21" HorizontalAlignment="Center" TextWrapping="Wrap" Foreground="Firebrick" FontWeight="DemiBold" VerticalAlignment="Center"/>
+        </Border>-->
+
+    </Grid>
+</Window>
